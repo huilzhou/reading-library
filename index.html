@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>知识索引 · GPU CPM / Datacenter CQE / 个人学习</title>
+<style>
+  :root {
+    --bg: #0b0c0f;
+    --panel: #14161c;
+    --line: #2a2e38;
+    --text: #f2efe8;
+    --mute: #9aa1ad;
+    --accent: #e11d2e;
+    --gold: #d8b46a;
+    --teal: #7eb8c9;
+    --pad: clamp(12px, 3vw, 28px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.45;
+  }
+  a { color: #f0c36a; }
+  header {
+    padding: calc(14px + env(safe-area-inset-top)) var(--pad) 14px;
+    border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(900px 280px at 8% -20%, rgba(225,29,46,.22), transparent 55%),
+      linear-gradient(180deg, #12141a, #0b0c0f);
+  }
+  .eyebrow {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline;
+    color: var(--mute); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .eyebrow b { color: var(--accent); font-weight: 700; letter-spacing: .12em; }
+  h1 { margin: 8px 0 6px; font-size: clamp(22px, 5vw, 34px); font-weight: 700; letter-spacing: -.02em; }
+  .lead { margin: 0; max-width: 78ch; color: var(--mute); font-size: 14px; }
+  .warn {
+    margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--gold);
+    background: #1a1712; color: #e8d7b0; font-size: 13px;
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin-top: 12px;
+  }
+  .toolbar input {
+    flex: 1 1 220px; max-width: 420px;
+    border: 1px solid var(--line); background: #10131a; color: var(--text);
+    border-radius: 999px; padding: 10px 14px; font-size: 14px;
+  }
+  .toolbar input:focus { outline: 1px solid var(--accent); }
+  .count { color: var(--mute); font-size: 12px; }
+  main {
+    display: grid; grid-template-columns: 1fr;
+    min-height: calc(100dvh - 180px);
+  }
+  @media (min-width: 1080px) {
+    main { grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); }
+  }
+  .maps { padding: 8px var(--pad) 20px; min-width: 0; }
+  .track { margin-top: 16px; }
+  .track-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-bottom: 8px; }
+  .track-head h2 { margin: 0; font-size: 18px; }
+  .track-head p { margin: 0; color: var(--mute); font-size: 13px; }
+  .track.learn .track-head h2 { color: var(--teal); }
+  .track.shared .track-head h2 { color: var(--gold); }
+  .flow-wrap {
+    padding: 12px; border: 1px solid var(--line); border-radius: 16px;
+    background: #0f1116; overflow-x: auto;
+  }
+  .flow { display: flex; align-items: stretch; gap: 8px; min-width: max-content; }
+  .node {
+    appearance: none; border: 1px solid var(--line); background: var(--panel);
+    color: var(--text); border-radius: 14px; padding: 12px 14px; min-width: 132px;
+    text-align: left; cursor: pointer;
+  }
+  .node:hover { border-color: #4a5160; }
+  .node.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px rgba(225,29,46,.45); }
+  .track.learn .node.on { border-color: var(--teal); box-shadow: inset 0 0 0 1px rgba(126,184,201,.45); }
+  .track.shared .node.on { border-color: var(--gold); box-shadow: inset 0 0 0 1px rgba(216,180,106,.45); }
+  .node .k { display: block; color: var(--mute); font-size: 11px; letter-spacing: .06em; }
+  .node .t { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; }
+  .node .s { display: block; margin-top: 4px; color: var(--mute); font-size: 12px; }
+  .node.future { border-style: dashed; opacity: .9; }
+  .arrow { align-self: center; color: #5b6373; font-size: 18px; }
+  .detail {
+    padding: var(--pad); border-top: 1px solid var(--line); background: #101218;
+  }
+  @media (min-width: 1080px) {
+    .detail { border-top: 0; border-left: 1px solid var(--line); }
+  }
+  .stage-head h2 { margin: 0; font-size: clamp(20px, 3vw, 26px); }
+  .meta { color: var(--mute); font-size: 13px; margin-top: 4px; }
+  .note { margin: 12px 0 0; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip {
+    border: 1px solid #2c3340; background: #171b24; color: var(--text);
+    border-radius: 999px; padding: 7px 12px; font-size: 13px;
+  }
+  .chip.empty { border-style: dashed; color: var(--gold); }
+  .glab { margin-top: 16px; color: var(--gold); font-size: 12px; letter-spacing: .06em; }
+  .chip mark {
+    background: transparent; color: var(--gold); font-weight: 700;
+  }
+  .page {
+    display: block; margin-top: 14px; padding: 12px; border-radius: 12px;
+    background: #171b24; border: 1px solid #262b36; color: inherit; text-decoration: none;
+  }
+  .page:hover { border-color: #4a5160; }
+  .page .kind { color: var(--accent); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+  .page .title { display: block; margin-top: 4px; font-weight: 650; }
+  .page .note { display: block; margin: 4px 0 0; color: var(--mute); font-size: 12.5px; }
+  .hits { margin-top: 14px; display: grid; gap: 8px; }
+  .hit {
+    width: 100%; text-align: left; cursor: pointer;
+    border-radius: 12px; padding: 10px 12px; border: 1px solid #2c3340; background: #171b24; color: inherit;
+  }
+  .hit:hover, .hit.on { border-color: #4a5160; }
+  .hit .where { color: var(--mute); font-size: 12px; }
+  .hit .what { display: block; margin-top: 3px; font-size: 14px; }
+  footer {
+    padding: 10px var(--pad) calc(14px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line); color: var(--mute); font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow"><b>AMD</b><span>Knowledge index</span><span id="src"></span></div>
+  <h1>知识索引</h1>
+  <p class="lead">三条线：GPU CPM、Datacenter CQE、个人学习。CPM 先看职责、PMP 和带团队；CQE 看客户质量与制造；个人学习收 JMP、Power BI、阅读和编程。还没有的知识点，加到对应节点即可。</p>
+  <div class="warn">Learn.docx 里的产品标题仍只列名字，不搬正文。职责、PMP 和 Sr Manager 的做法写在 cpm.html。制程页 semiconductor-process-flow.html 保持原样，从 CQE 的制造节点链出去。JMP / Power BI 目前是空位，阅读已有第一本，后面补。</div>
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="搜标题，例如 HBM、JMP、PPIN" autocomplete="off">
+    <span class="count" id="count"></span>
+  </div>
+</header>
+<main>
+  <div class="maps" id="maps"></div>
+  <aside class="detail" id="detail"></aside>
+</main>
+<footer id="foot"></footer>
+<script>
+const DATA = {
+  source: "Learn.docx 标题 · 2026-11-20",
+  tracks: [
+    {
+      id: "cpm",
+      title: "GPU CPM",
+      lead: "先是职责、PMP 和带团队。客户项目和产品名词在后面，当查阅。",
+      domains: [
+        {
+          id: "duty", en: "Role", label: "基本职责", short: "CPM 对谁负责",
+          note: "对客户承诺什么，对内拉通什么，一周留下什么。正文在 cpm.html。",
+          page: { href: "cpm.html#duty", kind: "已写", title: "CPM 基本职责", note: "位置、对客户、对内、四件事、赢单到移交、谁下结论、一周节奏。" },
+          topics: ["CPM 在项目里的位置", "对客户", "对内拉通", "手上的四件事", "从赢单到移交", "谁下哪种结论", "一周怎么过"]
+        },
+        {
+          id: "method", en: "PMP", label: "工作方法", short: "单个项目怎么跑",
+          note: "用 PMP 的三域、五个过程组和十大知识领域跑一个客户项目，并裁剪到 GPU 的门禁。正文在 cpm.html。",
+          page: { href: "cpm.html#method", kind: "已写", title: "PMP 工作方法", note: "启动到收尾，加上范围、进度、风险、沟通这几件每天会用到的。" },
+          topics: ["一套方法里的三层", "三大域", "五个过程组是节奏", "启动", "规划", "执行", "监控", "收尾", "整合", "范围", "进度", "成本", "质量", "资源", "沟通", "风险", "采购", "相关方", "裁剪到 GPU 客户项目", "和 PMBOK 第7版的关系"]
+        },
+        {
+          id: "team", en: "Sr Manager", label: "带团队", short: "经理的操作系统",
+          note: "Grove 的产出、杠杆、按任务授权和一对一。Sr Manager 再管项目组合、决策权、人才和绩效。正文在 cpm.html。",
+          page: { href: "cpm.html#team", kind: "已写", title: "Sr Manager 带团队", note: "团队的产出怎么算，多个客户项目抢资源时谁排序。" },
+          topics: ["经理的产出", "管理杠杆", "按任务授权", "一对一", "会议只留两种", "先行指标", "决定怎么做", "培养是本职", "项目组合", "组织和决策权", "人才", "绩效", "向上和横向", "三层怎么叠"]
+        },
+        {
+          id: "customer", en: "Customer", label: "客户项目", short: "Win 和机型",
+          note: "Design win、客户机型和媒体评测，仍是 Learn.docx 里的标题。Manufacture Level 记的是机箱零件层级 L1–L3。Nvidia 数据中心 GPU 在 CQE · GPU。",
+          topics: ["Design Win Definition", "Competition", "产品与竞争", "ThinkPad", "AMD vs Nvidia", "Media review", "RTX 40", "Legion Slim 5", "Legion Pro 5", "Manufacture Level", "组织架构"]
+        },
+        {
+          id: "product", en: "Product", label: "产品底稿", short: "名词收成一格",
+          note: "形态、图形、显示、显存、电源、板级和无线的标题收在这里，便于查阅。ACPI 含 G/D/C/P-State。Infinity Fabric 是 AMD 互连。HBM 目前挂在这里。",
+          topics: ["Naming Rule", "Code Name and Marketing Name", "Block Diagram", "BIOS", "Rom Armor", "Usage specific GPU", "Dedicated graphics cards", "Integrated graphics", "Hybrid graphics", "External GPU (eGPU)", "GPGPU", "DirectX", "Vulkan", "OpenGL", "OpenCL", "WDDM", "shader model", "流处理器", "ROPs", "纹理映射单元", "像素", "像素填充率", "屏幕分辨率", "Ray-Tracing", "anti-aliasing", "Anisotropic filtering", "LiquidVR", "FLOPS", "FPS", "3DMark", "Cinebench", "3A游戏", "FreeSync", "Eyefinity", "HDCP", "PlayReady", "HDR", "HDMI", "DisplayPort", "HDMI 与 DisplayPort", "DVI", "YCbCr", "CVT", "Miracast", "MiniLED", "MiniLED 与 OLED", "各分辨率", "VRAM", "显存概念", "显存位宽", "显存带宽", "显存频率", "GDDR6", "HBM", "HBM 与 GDDR6", "AMD Memory 算法", "DDR5", "Chip down design", "Infinity Fabric", "PCIe", "USB", "Thunderbolt 4 与 USB4", "ACPI", "Modern Standby", "BACO", "BAMACO", "BOCO", "BOMACO", "DCS", "Duty Cycle", "SmartMux", "SmartShift", "Smart Access Memory", "Smart DC", "SMART CASO", "Smart Quiet Mode", "Smart dGPU Connect", "TDP", "ASPM", "MCA / MCE", "Memory Training", "BSOD", "In-band 与 Out-of-band", "CSR", "通孔 PTH", "盲孔", "埋孔", "Stub", "Backdrill", "VIA in PAD", "ESR", "电容器", "Derating", "Load line", "Slew Rate", "5G", "5G · Overview", "5G · Performance", "Wi-Fi", "Bluetooth 与 Wi-Fi", "Bluetooth", "WLAN", "Radio Frequency"]
+        },
+        {
+          id: "cpm-next", en: "Later", label: "后续补充", short: "这一线还没有的",
+          future: true,
+          note: "某个客户的项目专档、某代 bring-up，加在这里。",
+          topics: []
+        }
+      ]
+    },
+    {
+      id: "cqe",
+      title: "Datacenter CQE",
+      lead: "客户质量在前。产品资料按 CPU / GPU 分开，来自 OneDrive Data Center。",
+      domains: [
+        {
+          id: "role", en: "Role", label: "质量接口", short: "CQE 笔记",
+          note: "这一节记的是客户质量接口人：Asia、Americas、Product Line Quality。",
+          topics: ["CQE"]
+        },
+        {
+          id: "flow", en: "Customer", label: "客户流程", short: "故障怎么走",
+          note: "目前是 Alibaba CPU 故障后的维修与日志场景。别的客户流程以后加在这个节点。",
+          topics: ["客户流程"]
+        },
+        {
+          id: "log", en: "Log", label: "Log", short: "从日志找回 SN",
+          note: "PPIN、CPER、onekey、BIOS 和 dmidecode 从哪一段取。CPU 和 GPU 在同一节里分成两小节。",
+          topics: ["Log analysis", "Log · CPU", "Log · GPU"]
+        },
+        {
+          id: "process", en: "Process", label: "制造与工艺", short: "节点、设计、产业链",
+          note: "制程、FinFET、芯片设计和厂商梳理。Foundry 到 TMP 的流程页已经单独存在，从下面链出去，文件本身不改。",
+          page: {
+            href: "semiconductor-process-flow.html",
+            kind: "已有页面",
+            title: "半导体流程 · Foundry → TMP",
+            note: "保持原样。主文加带来源的补充，按工站展开。"
+          },
+          topics: ["芯片制造工艺中的衡量指标", "芯片厂商", "制程", "最小栅极宽度", "20nm / 10nm 的问题", "FinFET", "半导体工艺的衡量指标", "芯片设计", "EMU", "IC 设计全流程", "芯片分类与厂商", "FPGA 与 ASIC"]
+        },
+        {
+          id: "rel", en: "Reliability", label: "可靠性", short: "分布与样本量",
+          note: "可靠性笔记目前是离散 / 连续分布。最小样本量是另一篇抽样统计。",
+          topics: ["可靠性", "最小样本量"]
+        },
+        {
+          id: "cpu", en: "CPU", label: "CPU", short: "EPYC 产品库",
+          note: "资料在 OneDrive Data Center\\CPU。Venice 已做成凝练页；其余代际仍先挂目录。Interlock、Newsletter、EDC 和培训也在这一侧。",
+          page: {
+            href: "venice.html",
+            kind: "已写",
+            title: "Venice · SP7 知识凝练",
+            note: "身份、算力、内存、IO、RAS、客户使能。原文目录仍可从该页右侧打开。"
+          },
+          topics: ["Venice · SP7", "Milan · SP3", "Genoa / Bergamo · SP5", "Siena · SP6", "Turin · SP5", "Interlock", "Newsletter", "EDC / RAS 培训", "Siena Technical Training", "Customer Enablement", "OPN / SKU", "MCA / RAS 政策", "PCIe 基础"]
+        },
+        {
+          id: "gpu", en: "GPU", label: "GPU", short: "Instinct 产品库",
+          note: "资料在 OneDrive Data Center\\GPU。MI Series 有 MI210、MI300X / MI308X；Roadmap 有 MI358X 与 CDNA。现场健康检查、GPU FAQ、Nvidia 竞品和 Scale out / scale up 也挂在这里。",
+          page: {
+            href: "file:///C:/Users/huilzhou/OneDrive%20-%20Advanced%20Micro%20Devices%20Inc/Documents/Data%20Center/GPU",
+            kind: "本地目录",
+            title: "Data Center \\ GPU",
+            note: "打开本机 OneDrive 里的 GPU 产品资料夹。"
+          },
+          topics: ["MI210", "MI300X / MI308X", "MI Roadmap", "RDNA 与 CDNA", "Field Health Check", "AMD GPU 常见问题", "Nvidia DC GPU", "Scale out 与 scale up"]
+        },
+        {
+          id: "cqe-next", en: "Later", label: "后续补充", short: "这一线还没有的",
+          future: true,
+          note: "Datacenter CQE 上还没有的域，加在这里。例如 FA 案例、某客户 yield、QuEST / PDG 的用法。",
+          topics: []
+        }
+      ]
+    },
+    {
+      id: "learn",
+      title: "个人学习",
+      lead: "工具、阅读和编程。JMP、Power BI 先占位；阅读已有第一本书单。",
+      learn: true,
+      domains: [
+        {
+          id: "jmp", en: "JMP", label: "JMP", short: "统计分析",
+          future: true,
+          note: "统计分析与实验设计。还没有写进 Learn.docx，学完一条就加一条。",
+          topics: []
+        },
+        {
+          id: "pbi", en: "Power BI", label: "Power BI", short: "报表与数据",
+          future: true,
+          note: "建模、DAX、报表和发布。还没有写进 Learn.docx，学完一条就加一条。",
+          topics: []
+        },
+        {
+          id: "reading", en: "Reading", label: "阅读收获", short: "书与文章",
+          note: "个人阅读的摘录和判断。一条收获对应一个可执行的结论，不堆原文。原文只放链接。",
+          page: {
+            href: "reading.html",
+            kind: "已写",
+            title: "阅读收获 · 书单",
+            note: "默认中英对照。有英文原文的按原文，没有的由我翻译。"
+          },
+          groups: [
+            { label: "人生与心态", en: "Life & Mindset",
+              topics: ["被讨厌的勇气 · The Courage to Be Disliked", "爸爸忘记了 · Father Forgets", "人性的弱点 · How to Win Friends and Influence People", "好学若饥，谦卑若愚 · Stay Hungry, Stay Foolish", "断舍离 · Danshari: The Art of Decluttering", "临终前最后悔的五件事 · The Top Five Regrets of the Dying", "十分钟冥想 · The Headspace Guide to Meditation and Mindfulness", "幸福的勇气 · The Courage to Be Happy", "牧羊少年奇幻之旅 · The Alchemist", "人生由我 · A Woman Makes A Plan", "纳瓦尔宝典 · 积累财富 · The Navalmanack: Building Wealth", "纳瓦尔宝典 · 增强判断力 · The Navalmanack: Sharpening Judgment", "纳瓦尔宝典 · 学习幸福 · The Navalmanack: Learning Happiness", "纳瓦尔宝典 · 自我救赎 · The Navalmanack: Self-Redemption", "富兰克林的十三项美德 · Benjamin Franklin's Thirteen Virtues", "夏洛的网 · Charlotte's Web"] },
+            { label: "习惯与效率", en: "Habits & Efficiency",
+              topics: ["高效能人士的七个习惯 · The 7 Habits of Highly Effective People", "终身成长 · Mindset", "习惯的力量 · The Power of Habit", "如何找到想做的事 · Finding What You Want to Do", "刻意练习：如何从新手到大师 · Peak: Secrets from the New Science of Expertise", "懒惰的艺术：克服拖延，提升效率 · The Art of Laziness", "随他们去 · The Let Them Theory", "掌控习惯 · Atomic Habits"] },
+            { label: "学习与阅读", en: "Learning & Reading",
+              topics: ["费曼学习法 · The Feynman Technique", "极简学习法 · Minimalist Learning", "拆解一切考试 · Decoding Every Exam", "自驱型成长 · The Self-Driven Child", "海绵阅读法 · Sponge Reading Method"] },
+            { label: "认知与系统", en: "Thinking & Systems",
+              topics: ["疯传：传播不是运气，是可复制的逻辑 · Contagious: Why Things Catch On", "女士品茶 · The Lady Tasting Tea", "赤裸裸的统计学 · Naked Statistics", "系统之美 · Thinking in Systems", "链接 · Linked", "复杂 · Complexity: A Guided Tour", "原则 · Principles", "思考，快与慢（上） · Thinking, Fast and Slow (I)", "思考，快与慢（下） · Thinking, Fast and Slow (II)"] },
+            { label: "金钱、商业与经济", en: "Money, Business & Economics",
+              topics: ["赢 · Winning", "定位 · Positioning", "从0到1 · Zero to One", "金钱心理学 · The Psychology of Money", "漫步华尔街 · A Random Walk Down Wall Street", "经济学原理 · 微观（上） · Principles of Economics: Microeconomics (I)", "经济学原理 · 微观（下） · Principles of Economics: Microeconomics (II)", "经济学原理 · 宏观（上） · Principles of Economics: Macroeconomics (I)", "经济学原理 · 宏观（下） · Principles of Economics: Macroeconomics (II)"] },
+            { label: "历史与地理", en: "History & Geography",
+              topics: ["枪炮、病菌与钢铁 · Guns, Germs, and Steel", "为什么是中国 · Why China?", "透过地理看历史 · Seeing History Through Geography", "透过地理看历史：大航海时代（上） · Seeing History Through Geography: The Age of Discovery (I)", "透过地理看历史：大航海时代（下） · Seeing History Through Geography: The Age of Discovery (II)"] },
+            { label: "科学、身体与社会", en: "Science, Body & Society",
+              topics: ["服美役 · Beauty Servitude (Specchio delle mie brame)", "物种起源 · On the Origin of Species", "基因组：生命之书23章 · Genome: The Autobiography of a Species in 23 Chapters", "自私的基因 · The Selfish Gene", "人体简史（上） · The Body: A Guide for Occupants (I)", "人体简史（中） · The Body: A Guide for Occupants (II)", "人体简史（下） · The Body: A Guide for Occupants (III)"] }
+          ]
+        },
+        {
+          id: "code", en: "Code", label: "编程与 AI", short: "已有笔记",
+          note: "Learn.docx 里已有的编程、机器学习和数值精度。Cloud 这个标题下面没有正文。",
+          topics: ["编程语言", "Machine Learning", "FP32 / FP16 / INT8", "DirectML", "PyTorch", "TensorFlow", "训练", "推理", "INT8 稀疏与量化", "吴恩达", "Cloud"],
+          empty: ["Cloud"]
+        },
+        {
+          id: "learn-next", en: "Later", label: "后续补充", short: "这一线还没有的",
+          future: true,
+          note: "新工具、一门课或一套练习，先加在这里再拆成独立节点。",
+          topics: []
+        }
+      ]
+    },
+    {
+      id: "shared",
+      title: "三条线外面",
+      lead: "缩写、物理和公司笔记。先不塞进上面三条线。以后某条明确属于一条线，再挪过去。",
+      shared: true,
+      domains: [
+        {
+          id: "acr", en: "Glossary", label: "缩写", short: "A 到 X",
+          note: "Learn.docx 开头的缩写表，按字母分节。",
+          topics: ["Acronyms A–X"]
+        },
+        {
+          id: "phys", en: "Physics", label: "电气物理", short: "电学底稿",
+          note: "电流、功率、电容和麦克斯韦。给几条线共用，不复制进某一边。",
+          topics: ["物理名词", "电", "电流", "电功率", "电容", "麦克斯韦方程组"]
+        },
+        {
+          id: "co", en: "Company", label: "公司与财务", short: "组织以外的公司笔记",
+          note: "财报季度笔记、净利润和毛利润、AET 与展会，以及 Intel / AMD 的公司简介。Jack 的 All Hands 也在这里。带团队的方法在 GPU CPM。",
+          topics: ["Financial Results", "财务", "AET", "Intel", "AMD", "Jack CG All Hands"]
+        },
+        {
+          id: "data", en: "Data", label: "Data Fabric", short: "数据架构",
+          note: "两处 Data Fabric 都是数据管理架构。AMD 的片上互连在 CPM · 产品底稿，标题是 Infinity Fabric。",
+          topics: ["Data Fabric"]
+        }
+      ]
+    }
+  ]
+};
+
+let current = { track: "cpm", domain: "duty" };
+DATA.tracks.forEach(t => t.domains.forEach(d => { if (d.groups) d.topics = d.groups.flatMap(g => g.topics); }));
+const qEl = document.getElementById("q");
+
+function domainBy(trackId, domainId) {
+  const track = DATA.tracks.find(t => t.id === trackId);
+  return { track, domain: track.domains.find(d => d.id === domainId) };
+}
+
+function allTopics() {
+  const rows = [];
+  DATA.tracks.forEach(track => {
+    track.domains.forEach(domain => {
+      domain.topics.forEach(topic => {
+        rows.push({ track, domain, topic, empty: (domain.empty || []).includes(topic) });
+      });
+    });
+  });
+  return rows;
+}
+
+function renderMaps() {
+  const host = document.getElementById("maps");
+  host.replaceChildren();
+  DATA.tracks.forEach(track => {
+    const sec = document.createElement("section");
+    sec.className = "track" + (track.learn ? " learn" : "") + (track.shared ? " shared" : "");
+    const head = document.createElement("div");
+    head.className = "track-head";
+    const h = document.createElement("h2");
+    h.textContent = track.title;
+    const p = document.createElement("p");
+    p.textContent = track.lead;
+    head.append(h, p);
+    const wrap = document.createElement("div");
+    wrap.className = "flow-wrap";
+    const flow = document.createElement("div");
+    flow.className = "flow";
+    track.domains.forEach((domain, i) => {
+      if (i) {
+        const arrow = document.createElement("div");
+        arrow.className = "arrow";
+        arrow.textContent = "→";
+        flow.appendChild(arrow);
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "node" + (domain.future ? " future" : "") + (current.track === track.id && current.domain === domain.id ? " on" : "");
+      b.innerHTML = '<span class="k"></span><span class="t"></span><span class="s"></span>';
+      b.querySelector(".k").textContent = domain.en;
+      b.querySelector(".t").textContent = domain.label;
+      const n = domain.topics.length;
+      b.querySelector(".s").textContent = domain.future && !n ? "空位" : (n + " 条");
+      b.onclick = () => { current = { track: track.id, domain: domain.id }; qEl.value = ""; render(); };
+      flow.appendChild(b);
+    });
+    wrap.appendChild(flow);
+    sec.append(head, wrap);
+    host.appendChild(sec);
+  });
+}
+
+function chip(text, empty, query) {
+  const el = document.createElement("span");
+  el.className = "chip" + (empty ? " empty" : "");
+  if (query && text.toLowerCase().includes(query)) {
+    const i = text.toLowerCase().indexOf(query);
+    el.append(text.slice(0, i));
+    const m = document.createElement("mark");
+    m.textContent = text.slice(i, i + query.length);
+    el.append(m, text.slice(i + query.length));
+    if (empty) el.append(" · 标题下无正文");
+  } else {
+    el.textContent = empty ? text + " · 标题下无正文" : text;
+  }
+  return el;
+}
+
+function renderDetail(query) {
+  const host = document.getElementById("detail");
+  host.replaceChildren();
+  const { track, domain } = domainBy(current.track, current.domain);
+  const head = document.createElement("div");
+  head.className = "stage-head";
+  const h = document.createElement("h2");
+  h.textContent = track.title + " · " + domain.label;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = domain.en + " · " + domain.short + (domain.topics.length ? " · " + domain.topics.length + " 条标题" : " · 还没有标题");
+  head.append(h, meta);
+  host.appendChild(head);
+  const note = document.createElement("p");
+  note.className = "note";
+  note.textContent = domain.note;
+  host.appendChild(note);
+  if (domain.page) {
+    const a = document.createElement("a");
+    a.className = "page";
+    a.href = domain.page.href;
+    a.innerHTML = '<span class="kind"></span><span class="title"></span><span class="note"></span>';
+    a.querySelector(".kind").textContent = domain.page.kind;
+    a.querySelector(".title").textContent = domain.page.title;
+    a.querySelector(".note").textContent = domain.page.note;
+    host.appendChild(a);
+  }
+  const hits = query ? allTopics().filter(r => r.topic.toLowerCase().includes(query)) : [];
+  if (query) {
+    const box = document.createElement("div");
+    box.className = "hits";
+    const label = document.createElement("div");
+    label.className = "meta";
+    label.textContent = hits.length ? ("全库命中 " + hits.length + " 条") : "没有这个标题";
+    box.appendChild(label);
+    hits.forEach(r => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "hit" + (r.track.id === track.id && r.domain.id === domain.id ? " on" : "");
+      b.innerHTML = '<span class="where"></span><span class="what"></span>';
+      b.querySelector(".where").textContent = r.track.title + " · " + r.domain.label;
+      b.querySelector(".what").textContent = r.empty ? r.topic + " · 标题下无正文" : r.topic;
+      b.onclick = () => { current = { track: r.track.id, domain: r.domain.id }; render(); };
+      box.appendChild(b);
+    });
+    host.appendChild(box);
+  }
+  if (domain.groups) {
+    domain.groups.forEach(g => {
+      const list = query ? g.topics.filter(t => t.toLowerCase().includes(query)) : g.topics;
+      if (!list.length) return;
+      const lab = document.createElement("div");
+      lab.className = "glab";
+      lab.textContent = g.label + " · " + g.en + " · " + list.length + " 本";
+      const row = document.createElement("div");
+      row.className = "chips";
+      list.forEach(t => row.appendChild(chip(t, false, query)));
+      host.append(lab, row);
+    });
+    if (query && !domain.topics.some(t => t.toLowerCase().includes(query))) {
+      const empty = document.createElement("div");
+      empty.className = "meta";
+      empty.textContent = "这个节点里没有命中。上面是全库结果。";
+      host.appendChild(empty);
+    }
+    return;
+  }
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  const shown = query ? domain.topics.filter(t => t.toLowerCase().includes(query)) : domain.topics;
+  if (!shown.length && !domain.future) {
+    const empty = document.createElement("div");
+    empty.className = "meta";
+    empty.textContent = query ? "这个节点里没有命中。上面是全库结果。" : "这个节点还没有标题。";
+    chips.appendChild(empty);
+  }
+  shown.forEach(t => chips.appendChild(chip(t, (domain.empty || []).includes(t), query)));
+  host.appendChild(chips);
+}
+
+function render() {
+  const query = qEl.value.trim().toLowerCase();
+  const topics = allTopics();
+  document.getElementById("src").textContent = DATA.source;
+  document.getElementById("count").textContent =
+    DATA.tracks.filter(t => !t.shared).map(t => t.title + " " + t.domains.reduce((n, d) => n + d.topics.length, 0)).join(" · ")
+    + " · 线外 " + topics.filter(r => r.track.shared).length;
+  renderMaps();
+  renderDetail(query);
+  const placed = topics.length;
+  document.getElementById("foot").textContent =
+    "已挂标题 " + placed + " 条 · 三条线分开 · JMP / Power BI / 阅读在个人学习里补。";
+}
+
+qEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
