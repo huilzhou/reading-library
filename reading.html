@@ -48,6 +48,44 @@
     color: color-mix(in srgb, var(--c) 42%, #fff); font-size: 12.5px;
   }
 
+
+  .search-wrap {
+    padding: 16px var(--gutter) 4px;
+    background: #0f1116;
+  }
+  .search-box {
+    display: flex; align-items: center; gap: 10px;
+    max-width: 520px; padding: 9px 14px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+    transition: border-color .15s;
+  }
+  .search-box:focus-within { border-color: var(--c); }
+  .search-box svg { flex: none; width: 16px; height: 16px; color: var(--mute); }
+  .search-box input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    color: var(--text); font: inherit; font-size: 14px;
+  }
+  .search-box input::placeholder { color: var(--mute); }
+  .search-clear {
+    flex: none; border: 0; background: transparent; color: var(--mute);
+    cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px;
+  }
+  .search-clear:hover { color: var(--text); }
+  .search-results {
+    max-width: 520px; margin: 8px 0 0; padding: 6px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    display: none;
+  }
+  .search-results.on { display: block; }
+  .search-item {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--text); font: inherit; font-size: 13.5px;
+  }
+  .search-item:hover, .search-item:focus { background: color-mix(in srgb, var(--c) 14%, transparent); outline: 0; }
+  .search-item .s-en { display: block; color: var(--mute); font-size: 12px; font-style: italic; }
+  .search-empty { padding: 10px; color: var(--mute); font-size: 13px; }
+
   #flow {
     padding: 18px var(--gutter) 20px;
     background: #0f1116;
@@ -185,8 +223,16 @@
 <header>
   <div class="eyebrow"><b>个人学习 · 阅读</b><a href="index.html">回到索引</a></div>
   <h1>阅读收获</h1>
-  <div class="warn">目前 59 篇。后面默认中英对照。有英文原文的按原文；没有的由我翻译。</div>
+  <div class="warn">目前 60 篇。后面默认中英对照。有英文原文的按原文；没有的由我翻译。</div>
 </header>
+<div class="search-wrap">
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input id="search-input" type="search" placeholder="搜索书名（中文 / English）" autocomplete="off" aria-label="搜索书名">
+    <button class="search-clear" id="search-clear" type="button" aria-label="清除">&times;</button>
+  </div>
+  <div class="search-results" id="search-results"></div>
+</div>
 <div id="flow"></div>
 <main>
   <section class="detail" id="detail"></section>
@@ -4191,13 +4237,15 @@ const DATA = {
 const COLORS = ["#e2a15c", "#6fbf8a", "#e08aa0", "#b79ae0", "#e08a62", "#d4b36a", "#5ec4c0"];
 
 const GROUPS = [
-  { label: "人生与心态", en: "Life & Mindset", books: ["complaint-free-world", "kill-dislike", "father-forgets", "how-to-win-friends", "stay-hungry", "danshari", "five-regrets", "headspace", "courage-happy", "alchemist", "life-by-me", "naval-wealth", "naval-judgment", "naval-happiness", "naval-redemption", "franklin-virtues", "charlottes-web"] },
-  { label: "习惯与效率", en: "Habits & Efficiency", books: ["seven-habits", "mindset", "power-of-habit", "how-to-find-want", "deliberate-practice", "art-of-laziness", "let-them", "atomic-habits"] },
-  { label: "学习与阅读", en: "Learning & Reading", books: ["feynman-technique", "minimal-learning", "exam-decoded", "self-driven-child", "sponge-reading"] },
-  { label: "认知与系统", en: "Thinking & Systems", books: ["contagious", "lady-tasting-tea", "naked-statistics", "thinking-in-systems", "linked", "complexity-mitchell", "principles", "thinking-fast-1", "thinking-fast-2"] },
-  { label: "金钱、商业与经济", en: "Money, Business & Economics", books: ["winning", "positioning", "zero-to-one", "psychology-of-money", "random-walk", "mankiw-micro-1", "mankiw-micro-2", "mankiw-macro-1", "mankiw-macro-2"] },
+  { label: "心理与自我成长", en: "Mind & Growth", books: ["complaint-free-world", "kill-dislike", "courage-happy", "how-to-win-friends", "headspace", "let-them", "mindset", "danshari"] },
+  { label: "纳瓦尔宝典", en: "The Almanack of Naval Ravikant", books: ["naval-wealth", "naval-judgment", "naval-happiness", "naval-redemption"] },
+  { label: "习惯与效能", en: "Habits & Efficiency", books: ["seven-habits", "power-of-habit", "atomic-habits", "art-of-laziness", "how-to-find-want", "deliberate-practice", "life-by-me", "franklin-virtues"] },
+  { label: "学习与养育", en: "Learning & Parenting", books: ["feynman-technique", "minimal-learning", "exam-decoded", "sponge-reading", "self-driven-child"] },
+  { label: "思维与判断", en: "Thinking & Judgment", books: ["principles", "thinking-fast-1", "thinking-fast-2", "contagious", "lady-tasting-tea", "naked-statistics", "thinking-in-systems", "linked", "complexity-mitchell"] },
+  { label: "财富、商业与经济", en: "Money, Business & Economics", books: ["winning", "positioning", "zero-to-one", "psychology-of-money", "random-walk", "mankiw-micro-1", "mankiw-micro-2", "mankiw-macro-1", "mankiw-macro-2"] },
   { label: "历史与地理", en: "History & Geography", books: ["guns-germs-steel", "why-is-china", "geography-sees-history", "age-of-discovery-1", "age-of-discovery-2"] },
-  { label: "科学、身体与社会", en: "Science, Body & Society", books: ["beauty-servitude", "origin-of-species", "genome-ridley", "selfish-gene", "body-bryson-1", "body-bryson-2", "body-bryson-3"] },
+  { label: "科学与生命", en: "Science & Life", books: ["origin-of-species", "selfish-gene", "genome-ridley", "body-bryson-1", "body-bryson-2", "body-bryson-3", "beauty-servitude"] },
+  { label: "文学与人生感悟", en: "Literature & Life", books: ["charlottes-web", "alchemist", "father-forgets", "five-regrets", "stay-hungry"] },
 ];
 
 function el(tag, cls, text) {
@@ -4339,6 +4387,53 @@ function render() {
   renderRefs();
   document.title = bookOf(current).title + " · 阅读收获";
 }
+
+
+function initSearch() {
+  const input = document.getElementById("search-input");
+  const results = document.getElementById("search-results");
+  const clear = document.getElementById("search-clear");
+  let items = [];
+
+  function show(q) {
+    q = q.trim().toLowerCase();
+    if (!q) { results.className = "search-results"; results.innerHTML = ""; items = []; return; }
+    const hits = DATA.books.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      (b.titleEn || "").toLowerCase().includes(q)
+    ).slice(0, 12);
+    results.innerHTML = "";
+    if (!hits.length) {
+      const d = el("div", "search-empty", "没有找到匹配的书名");
+      results.appendChild(d);
+    } else {
+      hits.forEach(b => {
+        const btn = el("button", "search-item");
+        btn.type = "button";
+        btn.appendChild(el("span", null, b.title));
+        btn.appendChild(el("span", "s-en", b.titleEn || ""));
+        btn.onclick = () => {
+          location.hash = b.id;
+          input.value = "";
+          results.className = "search-results";
+          results.innerHTML = "";
+          input.blur();
+        };
+        results.appendChild(btn);
+      });
+    }
+    results.className = "search-results on";
+  }
+
+  input.addEventListener("input", () => show(input.value));
+  input.addEventListener("focus", () => { if (input.value.trim()) show(input.value); });
+  clear.onclick = () => { input.value = ""; results.className = "search-results"; results.innerHTML = ""; input.focus(); };
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".search-wrap")) { results.className = "search-results"; }
+  });
+}
+
+initSearch();
 
 window.addEventListener("hashchange", () => { current = hashBook(); render(); });
 render();
