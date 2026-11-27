@@ -47,6 +47,8 @@
     background: color-mix(in srgb, var(--c) 16%, transparent);
     color: color-mix(in srgb, var(--c) 42%, #fff); font-size: 12.5px;
   }
+  .pv { margin-top: 8px; color: var(--mute); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .pv b { color: var(--c); font-weight: 700; }
 
 
   .search-wrap {
@@ -224,6 +226,7 @@
   <div class="eyebrow"><b>个人学习 · 阅读</b><a href="index.html">回到索引</a></div>
   <h1>阅读收获</h1>
   <div class="warn">目前 60 篇。后面默认中英对照。有英文原文的按原文；没有的由我翻译。</div>
+  <div class="pv">本页已被阅读 <b id="busuanzi_value_page_pv">—</b> 次</div>
 </header>
 <div class="search-wrap">
   <div class="search-box">
@@ -4304,5 +4307,6 @@ initSearch();
 window.addEventListener("hashchange", () => { current = hashBook(); render(); });
 render();
 </script>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
