@@ -226,6 +226,12 @@
   .toc-box summary::after { content: "＋"; float: right; color: var(--mute); }
   .toc-box[open] summary::after { content: "－"; }
   .toc-list { padding: 0 11px 10px; }
+  .toc-list.collapsed { max-height: 300px; overflow: hidden; }
+  .toc-toggle {
+    display: block; width: 100%; border: 0; border-top: 1px solid var(--line);
+    background: transparent; color: var(--c); cursor: pointer;
+    padding: 8px 11px; font-size: 12px; font-family: inherit;
+  }
   .toc-row {
     display: block; padding: 5px 0; border-bottom: 1px solid var(--line);
     font-size: 12px; line-height: 1.4; color: var(--ink-2);
@@ -235,6 +241,8 @@
   .toc-row .en { display: block; color: var(--mute); font-size: 10.5px; font-style: italic; }
   @media (max-width: 979px) {
     .toc-row { font-size: 13px; padding: 6px 0; }
+    .toc-list.collapsed { max-height: none; overflow: visible; }
+    .toc-toggle { display: none; }
   }
   footer {
     grid-column: 1 / -1; margin-top: 40px;
@@ -4293,7 +4301,7 @@ function renderRefs() {
     const box = el("details", "toc-box");
     const sum = el("summary", null, "章节目录 · 对照原文查找");
     box.appendChild(sum);
-    const list = el("div", "toc-list");
+    const list = el("div", "toc-list collapsed");
     b.toc.forEach(line => {
       const row = el("div", "toc-row");
       // 拆出中文关键词与英文原名：以最后一个英文段为界
@@ -4304,6 +4312,13 @@ function renderRefs() {
       list.appendChild(row);
     });
     box.appendChild(list);
+    const toggle = el("button", "toc-toggle", `展开全部 ${b.toc.length} 章 ↓`);
+    toggle.type = "button";
+    toggle.addEventListener("click", () => {
+      const collapsed = list.classList.toggle("collapsed");
+      toggle.textContent = collapsed ? `展开全部 ${b.toc.length} 章 ↓` : "收起目录 ↑";
+    });
+    box.appendChild(toggle);
     host.appendChild(box);
   }
 }
