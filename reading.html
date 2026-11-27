@@ -4280,13 +4280,21 @@ function renderRefs() {
   const host = document.getElementById("refs");
   host.innerHTML = "";
   const b = bookOf(current);
+  b.sources.forEach(s => {
+    const a = el("a", "ref");
+    a.href = s.href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.appendChild(el("span", "kind", s.kind));
+    a.appendChild(el("span", "title", s.title));
+    host.appendChild(a);
+  });
   if (b.toc && b.toc.length) {
     const box = el("details", "toc-box");
     const sum = el("summary", null, "章节目录 · 对照原文查找");
     box.appendChild(sum);
     const list = el("div", "toc-list");
     b.toc.forEach(line => {
-      const m = line.match(/^(.*?[\u4e00-\u9fff].*?)$/);
       const row = el("div", "toc-row");
       // 拆出中文关键词与英文原名：以最后一个英文段为界
       const zh = line.replace(/^[A-Za-z][^\u4e00-\u9fff]*?(?=[\u4e00-\u9fff])/, "").trim();
@@ -4298,15 +4306,6 @@ function renderRefs() {
     box.appendChild(list);
     host.appendChild(box);
   }
-  b.sources.forEach(s => {
-    const a = el("a", "ref");
-    a.href = s.href;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.appendChild(el("span", "kind", s.kind));
-    a.appendChild(el("span", "title", s.title));
-    host.appendChild(a);
-  });
 }
 
 function render() {
