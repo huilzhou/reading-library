@@ -5386,11 +5386,14 @@ function renderRefs() {
     const list = el("div", "toc-list collapsed");
     b.toc.forEach(line => {
       const row = el("div", "toc-row");
-      // 拆成「中文在上、英文在下」：以第一个中文字符为界，前面的都算英文
-      // 兼容字母/数字/符号开头（如 100% Responsibility、80/20 Rule）
+      // 拆成「中文在上、英文在下」：以第一个中文字符为界
+      // 仅当前缀含字母或数字才算英文；纯标点前缀（如「（一）」的括号）归中文
       const m = line.match(/^([^\u4e00-\u9fff]*?)(?=[\u4e00-\u9fff])/);
-      const zh = m ? line.slice(m[1].length).trim() : line.trim();
-      const en = m ? m[1].trim() : "";
+      let zh = line.trim(), en = "";
+      if (m && /[A-Za-z0-9]/.test(m[1])) {
+        zh = line.slice(m[1].length).trim();
+        en = m[1].trim();
+      }
       row.appendChild(el("span", "zh", zh));
       if (en) row.appendChild(el("span", "en", en));
       list.appendChild(row);
