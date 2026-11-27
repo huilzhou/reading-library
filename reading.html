@@ -225,7 +225,7 @@
   .toc-box summary::-webkit-details-marker { display: none; }
   .toc-box summary::after { content: "＋"; float: right; color: var(--mute); }
   .toc-box[open] summary::after { content: "－"; }
-  .toc-list { max-height: 240px; overflow-y: auto; padding: 0 11px 10px; }
+  .toc-list { padding: 0 11px 10px; }
   .toc-row {
     display: block; padding: 5px 0; border-bottom: 1px solid var(--line);
     font-size: 12px; line-height: 1.4; color: var(--ink-2);
@@ -234,7 +234,6 @@
   .toc-row .zh { display: block; }
   .toc-row .en { display: block; color: var(--mute); font-size: 10.5px; font-style: italic; }
   @media (max-width: 979px) {
-    .toc-list { max-height: none; }
     .toc-row { font-size: 13px; padding: 6px 0; }
   }
   footer {
