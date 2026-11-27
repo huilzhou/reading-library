@@ -214,6 +214,29 @@
   .ref .kind { display: block; color: var(--mute); font-size: 11px; }
   .ref .title { font-weight: 600; }
   .ref .note { display: none; }
+  .toc-box {
+    margin: 0 0 16px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--panel); overflow: hidden;
+  }
+  .toc-box summary {
+    list-style: none; cursor: pointer; padding: 9px 11px;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--c);
+  }
+  .toc-box summary::-webkit-details-marker { display: none; }
+  .toc-box summary::after { content: "＋"; float: right; color: var(--mute); }
+  .toc-box[open] summary::after { content: "－"; }
+  .toc-list { max-height: 240px; overflow-y: auto; padding: 0 11px 10px; }
+  .toc-row {
+    display: block; padding: 5px 0; border-bottom: 1px solid var(--line);
+    font-size: 12px; line-height: 1.4; color: var(--ink-2);
+  }
+  .toc-row:last-child { border-bottom: 0; }
+  .toc-row .zh { display: block; }
+  .toc-row .en { display: block; color: var(--mute); font-size: 10.5px; font-style: italic; }
+  @media (max-width: 979px) {
+    .toc-list { max-height: none; }
+    .toc-row { font-size: 13px; padding: 6px 0; }
+  }
   footer {
     grid-column: 1 / -1; margin-top: 40px;
     padding: 14px 0 calc(18px + env(safe-area-inset-bottom));
@@ -4031,6 +4054,25 @@ const DATA = {
       type: "心理学 / 自我成长",
       oneLine: "抱怨和事实陈述的区别在于话语里的情绪。抱怨会释放负面能量、把注意力锁在不想要的事物上；改变言语，就能重塑思维。方法是一只紫色手环和 21 天挑战。",
       oneLineEn: "A complaint differs from a statement of fact by the energy behind it. Complaining releases negative energy and fixes your attention on what you don't want; change your words and you reshape your thinking. The method is a purple bracelet and a 21-day challenge.",
+      toc: [
+        "Preface 前言",
+        "Part 1: Unconscious Incompetence 无意识的无能",
+        "Chapter 1: I Complain Therefore I Am 我怨故我在",
+        "Chapter 2: Complaining and Health 抱怨与健康",
+        "Part 2: Conscious Incompetence 有意识的无能",
+        "Chapter 3: Complaining and Relationships 抱怨与人际关系",
+        "Chapter 4: Why We Complain 我们为何抱怨",
+        "Chapter 5: Waking Up 觉醒",
+        "Part 3: Conscious Competence 有意识的有能",
+        "Chapter 6: Silence and the Language of Complaining 沉默以及抱怨的语言",
+        "Chapter 7: Criticism and Sarcasm 批评与讽刺",
+        "Chapter 8: Honk If You're Happy 如果你快乐，就按喇叭",
+        "Part 4: Unconscious Competence 无意识的有能",
+        "Chapter 9: Commitment 坚守承诺",
+        "Chapter 10: Mastery 臻入化境",
+        "Chapter 11: Complaint-Free Stories 不抱怨的故事",
+        "Conclusion: Uva Uvam Videndo Varia Fit 结语：一颗葡萄会催熟另一颗葡萄",
+      ],
       sources: [
         {
           kind: "公众号 · 中文",
@@ -4238,7 +4280,26 @@ function renderDetail() {
 function renderRefs() {
   const host = document.getElementById("refs");
   host.innerHTML = "";
-  bookOf(current).sources.forEach(s => {
+  const b = bookOf(current);
+  if (b.toc && b.toc.length) {
+    const box = el("details", "toc-box");
+    const sum = el("summary", null, "章节目录 · 对照原文查找");
+    box.appendChild(sum);
+    const list = el("div", "toc-list");
+    b.toc.forEach(line => {
+      const m = line.match(/^(.*?[\u4e00-\u9fff].*?)$/);
+      const row = el("div", "toc-row");
+      // 拆出中文关键词与英文原名：以最后一个英文段为界
+      const zh = line.replace(/^[A-Za-z][^\u4e00-\u9fff]*?(?=[\u4e00-\u9fff])/, "").trim();
+      const en = line.slice(0, line.length - zh.length).trim();
+      row.appendChild(el("span", "zh", zh));
+      if (en) row.appendChild(el("span", "en", en));
+      list.appendChild(row);
+    });
+    box.appendChild(list);
+    host.appendChild(box);
+  }
+  b.sources.forEach(s => {
     const a = el("a", "ref");
     a.href = s.href;
     a.target = "_blank";
